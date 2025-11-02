@@ -1,4 +1,7 @@
-# write a python function that takes a prompt and uses stability AI 
+# 모듈 설명: Stability AI 이미지 생성(예제 2)
+# - Listing 5.6과 유사한 이미지 생성 함수 예제로, 동일한 흐름을 따릅니다.
+
+# write a python function that takes a prompt and uses stability AI
 # to generate a image and save it to a file
 def generate_image(prompt):
     if api_key is None:
@@ -40,4 +43,3 @@ def generate_image(prompt):
         image_path = os.path.join(image_dir, filename)
         with open(image_path, "wb") as f:
             f.write(base64.b64decode(image["base64"]))
-

@@ -1,3 +1,8 @@
+# 모듈 설명: Listing 8.5-8.6 - RSS 블로그 데이터를 Redis 벡터 DB에 저장하는 예제
+# - feedparser로 RSS 피드를 읽고, BeautifulSoup로 HTML 파싱
+# - spaCy로 문장 단위 청킹 후 OpenAI 임베딩 생성
+# - Redis에 벡터 데이터를 저장하여 벡터 검색 가능하게 함
+
 import feedparser
 import os
 import numpy as np
@@ -19,9 +24,6 @@ import tiktoken as tk
 import spacy
 
 # Redis connection details
-# redis_host = os.getenv('REDIS_HOST')
-# redis_port = os.getenv('REDIS_PORT')
-# redis_password = os.getenv('REDIS_PASSWORD')
 redis_host = "localhost"
 redis_port = "6379"
 redis_password = ""
@@ -53,7 +55,8 @@ def count_tokens(string: str, encoding_name="cl100k_base") -> int:
     return num_tokens
 
 # Split the text into chunks by sentences
-def split_sentences_by_spacy(text, max_tokens, 
+# spaCy를 사용한 문장 단위 청킹 (오버랩 지원)
+def split_sentences_by_spacy(text, max_tokens,
                         overlap=0, 
                         model="en_core_web_sm"):
     # Load spaCy model
@@ -127,10 +130,12 @@ blog_posts = len(feed.entries)
 print("Number of blog posts: ", blog_posts)
 
 p = conn.pipeline(transaction=False)
+# 각 블로그 포스트를 처리
 for i, post in enumerate(feed.entries):
     # report progress
     print("Create embedding and save for entry #", i, " of ", blog_posts)
 
+    # BeautifulSoup을 사용하여 HTML 파싱
     r = requests.get(post.link)
     soup = BeautifulSoup(r.text, 'html.parser')
 
@@ -146,7 +151,6 @@ for i, post in enumerate(feed.entries):
     try:
         article_desc = soup.find('div', {'class': 'post-description'}).text
     except AttributeError as e:
-        #print("Error getting description: ", e)
         article_desc = ""
 
     # get the publish date
@@ -168,7 +172,6 @@ for i, post in enumerate(feed.entries):
     print("Desc:" + article_desc)
     print("Date:" + publish_date)
     print("URL:" + post.link)
-    # print("Body:" + article_body)
 
     article = article_body #This should be chunked up
 
@@ -179,6 +182,7 @@ for i, post in enumerate(feed.entries):
     chunks = split_sentences_by_spacy(article, max_tokens=3000, overlap=10)
     print(f"Number of chunks: {len(chunks)}")
 
+    # 각 청크에 대해 임베딩 생성 및 Redis에 저장
     for j, chunk in enumerate(tqdm(chunks)):
         vector = get_embedding(chunk)
         # convert to numpy array
@@ -194,6 +198,7 @@ for i, post in enumerate(feed.entries):
             "embedding": vector
         }
         
+        # Redis에 해시로 저장
         conn.hset(name=f"post:{i}_{j}", mapping=post_hash)
 
 p.execute()

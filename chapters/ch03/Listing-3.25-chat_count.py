@@ -1,3 +1,7 @@
+# 모듈 설명: Listing 3.25 - 토큰 제한을 고려한 대화 관리 예제
+# - 토큰 수를 계산하여 context window 제한을 초과하지 않도록 관리합니다.
+# - 오래된 대화 기록을 자동으로 삭제하여 토큰 제한 내에서 대화를 유지합니다.
+
 import os
 from openai import AzureOpenAI
 import tiktoken
@@ -12,10 +16,11 @@ GPT_MODEL = "gpt-35-turbo"
 
 system_message = {"role": "system", "content": "You are a helpful assistant."}
 max_response_tokens = 250
-token_limit = 4096
+token_limit = 4096  # GPT-3.5-turbo의 context window 크기
 conversation = []
 conversation.append(system_message)
 
+# 대화 메시지의 총 토큰 수 계산
 def num_tokens_from_messages(messages):
     encoding= tiktoken.get_encoding("cl100k_base")
     num_tokens = 0
@@ -35,8 +40,9 @@ while True:
     conversation.append({"role": "user", "content": user_input})
     conv_history_tokens = num_tokens_from_messages(conversation)
 
+    # 토큰 제한 초과 시 오래된 메시지 삭제
     while conv_history_tokens + max_response_tokens >= token_limit:
-        del conversation[1] 
+        del conversation[1]  # 시스템 메시지는 유지하고 가장 오래된 대화 삭제
         conv_history_tokens = num_tokens_from_messages(conversation)
 
     response = client.chat.completions.create(

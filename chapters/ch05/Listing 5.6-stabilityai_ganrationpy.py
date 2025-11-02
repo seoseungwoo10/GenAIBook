@@ -1,17 +1,19 @@
-# write a python function that takes a prompt and uses stability AI 
-# to generate a image and save it to a file
+# 모듈 설명: Stability AI를 사용한 이미지 생성 함수 예제
+# - 엔진 호출, 응답 검사, base64 디코딩 및 파일 저장을 수행합니다.
+
+# Stability AI를 사용하여 프롬프트에 대한 이미지를 생성하고 파일에 저장하는 Python 함수 작성
 def generate_image(prompt):
     if api_key is None:
         raise Exception("Missing Stability API key.")
 
-    # Set the directory where we'll store the image
+    # 이미지를 저장할 디렉토리 설정
     image_dir = os.path.join(os.curdir, 'images')
 
-    # Make sure the directory exists
+    # 디렉토리가 존재하는지 확인
     if not os.path.isdir(image_dir):
         os.mkdir(image_dir)
 
-    # Function to clean up filenames
+    # 파일 이름을 정리하는 함수
     def valid_filename(s):
         s = re.sub(r'[^\w_.)( -]', '', s).strip()
         return re.sub(r'[\s]+', '_', s)

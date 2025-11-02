@@ -1,3 +1,7 @@
+# 모듈 설명: Tabnine 코드 생성 예제
+# - Stability AI를 사용한 이미지 생성 함수의 불완전한 구현 예제입니다.
+# - 코드가 중간에 끊겨있어 실제 실행은 불가능합니다.
+
 import base64
 import os
 import requests
@@ -18,5 +22,6 @@ def generate_image(prompt):
         print(f"Prompt: {prompt}")
 
     image = response.json()["image"]
+    # 주의: 코드가 여기서 끊김 - 파일 저장 로직 미완성
     with open(f"{prompt}.png", "wb") as f:
-        
+        pass  # 실제 저장 코드 필요

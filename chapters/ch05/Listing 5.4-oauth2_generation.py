@@ -1,3 +1,7 @@
+# 모듈 설명: OAuth2 인증 및 KeyVault 시크릿 조회 예제
+# - Azure Identity의 ClientSecretCredential와 Key Vault SecretClient를 사용해
+#   Key Vault에서 시크릿을 읽는 흐름을 보여줍니다.
+
 # write a function to implement oauth2 authentication for a web application running on azure
 def oauth2():
     # import the required libraries

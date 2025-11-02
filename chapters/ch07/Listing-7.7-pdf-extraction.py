@@ -1,3 +1,8 @@
+# 모듈 설명: Listing 7.7 - PDF에서 텍스트 추출 및 청킹 예제
+# - PyPDF2를 사용하여 PDF 파일에서 텍스트를 추출합니다.
+# - spaCy를 사용한 문장 단위 청킹으로 임베딩 생성을 준비합니다.
+# - 주의: PDF 인코딩 방식에 따라 추출 정확도가 달라질 수 있음
+
 # pip install pypdf2
 
 # Few things to note:
@@ -15,6 +20,7 @@ import spacy
 client = OpenAI(api_key=os.getenv("OPENAI_API_BOOK_KEY"))
 
 # function that extracts text from a PDF
+# PDF 파일의 모든 페이지에서 텍스트를 추출
 def extract_text_from_pdf(pdf_path):
     with open(pdf_path, 'rb') as file:
         reader = PyPDF2.PdfReader(file)
@@ -83,6 +89,7 @@ def get_embedding(text):
     return response.data[0].embedding
 
 # Process the chunks
+# 각 청크의 토큰 수를 계산하고 임베딩 생성
 def process_chunks(sentences):
     sentence_embeddings = []
     total_token_count = 0

@@ -8,6 +8,7 @@ client = AzureOpenAI(
 )
 GPT_MODEL = "gpt-35-turbo"
 
+# 시스템 프롬프트: 반려동물 주제만 다루도록 제한
 conversation=[{"role": "system", "content": "You are an AI assistant that helps people find information. You can only talk about pets and nothing else. If you don't know the answer, say, \"Sorry bud, I don't know that.\" And if you cannot answer it, say \"Sorry mate, can't answer that - I am not allowed to\"."}]
 print("Please enter what you want to talk about:\n")
 
@@ -16,11 +17,13 @@ while True:
     if user_input.lower() == "exit":
         break
     
+    # 사용자 입력을 대화 기록에 추가
     conversation.append({"role": "user", "content": user_input})
 
     response = client.chat.completions.create(
         model = GPT_MODEL,
         messages = conversation)
 
+    # AI의 응답을 대화 기록에 추가
     conversation.append({"role": "assistant", "content": response.choices[0].message.content})
     print("\nAI:" + response.choices[0].message.content + "\n")

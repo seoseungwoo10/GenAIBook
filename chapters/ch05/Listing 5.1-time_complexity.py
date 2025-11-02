@@ -1,3 +1,7 @@
+# 모듈 설명: Listing 5.1 - 시간 측정 및 OpenAI Completion 사용 예제(테스트 포함)
+# - unittest를 사용해 OpenAI Completion 호출 결과를 모의(moc)하여 테스트하는 예제입니다.
+# - 실제 OpenAI 호출은 네트워크/환경 변수에 의존하므로 테스트는 mocking으로 처리합니다.
+
 # import os
 # import openai
 
@@ -36,6 +40,7 @@ class TestOpenAICompletion(unittest.TestCase):
 
     @patch('openai.Completion.create')
     def test_completion_create(self, mock_create):
+        # mock 설정: Completion.create가 반환해야 할 값 설정
         mock_create.return_value = {
             "choices": [
                 {"text": "test_text"}
@@ -49,6 +54,7 @@ class TestOpenAICompletion(unittest.TestCase):
             max_tokens=100,
             suffix="\nThats all folks!",
             stop=None)
+        # 모의 응답이 올바르게 사용되는지 검증
         self.assertEqual(response["choices"][0]["text"], "test_text")
 
     @patch('builtins.print')

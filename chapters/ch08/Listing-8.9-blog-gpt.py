@@ -1,3 +1,8 @@
+# 모듈 설명: Listing 8.9 - RAG(Retrieval-Augmented Generation) 블로그 GPT 예제
+# - Redis 벡터 검색으로 관련 문서를 찾고, 그 내용을 바탕으로 GPT가 답변 생성
+# - 토큰 예산을 관리하여 context window 내에서 최대한 많은 문서 포함
+# - 검색 결과를 GPT에 컨텍스트로 제공하는 완전한 RAG 파이프라인
+
 import numpy as np
 from redis.commands.search.query import Query
 import redis
@@ -12,9 +17,6 @@ import tiktoken as tk
 client = OpenAI(api_key=os.getenv('OPENAI_API_BOOK_KEY'))
 
 # Redis connection details
-# redis_host = os.getenv('REDIS_HOST')
-# redis_port = os.getenv('REDIS_PORT')
-# redis_password = os.getenv('REDIS_PASSWORD')
 redis_host = "localhost"
 redis_port = "6379"
 redis_password = ""
@@ -66,6 +68,7 @@ def hybrid_search(query_vector, client, top_k=5, hybrid_fields="*"):
     return results
 
 # Return a message for GPT, with relevant source texts pulled from a the vector db.
+# 벡터 DB에서 관련 문서를 검색하고 GPT 프롬프트 구성
 def get_search_results(query: str, max_token = 4096, debug_message=False) -> str:
     # Connect to the Redis server
     conn = redis.Redis(host=redis_host, port=redis_port, password=redis_password, encoding='utf-8', decode_responses=True)
@@ -85,6 +88,7 @@ def get_search_results(query: str, max_token = 4096, debug_message=False) -> str
     results = hybrid_search(query_vector, conn, top_k=5)
     
     # We reduce the token budget by 2000 to account for the query and the prompt.
+    # 토큰 예산 설정: 전체에서 쿼리 및 프롬프트 오버헤드 제외
     token_budget = max_token - count_tokens(query) - 2000
     if debug_message:
         print(f"Token budget: {token_budget}")
@@ -95,6 +99,7 @@ def get_search_results(query: str, max_token = 4096, debug_message=False) -> str
     
     question = f"\n\nQuestion: {query}"
 
+    # 검색된 문서를 토큰 예산 내에서 최대한 포함
     if results:
         for i, post in enumerate(results.docs):
             next_post = f'\n\nBlog post:\n"""\n{post.content}\n"""'
@@ -104,13 +109,14 @@ def get_search_results(query: str, max_token = 4096, debug_message=False) -> str
                     print(f"Token usage: {new_token_usage}")
                 message += next_post
             else:
-                break
+                break  # 토큰 예산 초과 시 중단
     else:
         print("No results found")
 
     return message + question
 
 # Ask GPT a question based on the search results
+# RAG: 검색된 문서를 컨텍스트로 GPT에 질문
 def ask_gpt(query : str, max_token = 4096, debug_message = False) -> str:
     message = get_search_results(
         query,
@@ -133,9 +139,8 @@ def ask_gpt(query : str, max_token = 4096, debug_message = False) -> str:
             print("Total tokens: ", count_tokens(messages))
             print(messages)
 
+    # GPT에 검색된 문서를 컨텍스트로 제공하여 답변 생성
     response = client.chat.completions.create(
-        #engine=model,
-        # #model="gpt-4",
         model="gpt-3.5-turbo-16k",
         messages=messages,
         temperature=0.5,

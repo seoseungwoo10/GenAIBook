@@ -1,3 +1,8 @@
+# 모듈 설명: Listing 8.7-8.8 - Redis 벡터 검색 예제
+# - 사용자 질의를 임베딩으로 변환 후 Redis에서 유사도 검색 수행
+# - KNN(K-Nearest Neighbors) 알고리즘으로 가장 유사한 문서 찾기
+# - 코사인 유사도를 기반으로 결과 순위 매기기
+
 import os
 import numpy as np
 from redis.commands.search.query import Query
@@ -18,6 +23,7 @@ redis_password = ""
 DEBUG = False
 
 # Perform a hybrid search using Redis search and return the top-k results
+# 하이브리드 검색: 벡터 유사도 + 텍스트 필터링
 def hybrid_search(query_vector, client, top_k=3, hybrid_fields="*"):
     base_query = f"{hybrid_fields}=>[KNN {top_k} @embedding $vector AS vector_score]"
     query = Query(base_query).return_fields(
@@ -67,13 +73,12 @@ query_vector = np.array(query_vector).astype(
 
 # Perform the similarity search
 print("Searching for similar posts...")
-#results = search_vectors(query_vector, conn)
 results = hybrid_search(query_vector, conn)
 
 if results:
     print(f"Found {results.total} results:")
     for i, post in enumerate(results.docs):
-        score = 1 - float(post.vector_score)
+        score = 1 - float(post.vector_score)  # 코사인 거리를 유사도로 변환
         print(post.content)
         if DEBUG:
             print(f"\t{i}. {post.title}, {post.publish_date} (Score: {round(score ,3) }) \n\t\t{post.description} \n\t\t{post.url} \n\t\t{post.content}")

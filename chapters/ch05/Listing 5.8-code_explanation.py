@@ -1,3 +1,8 @@
+# 모듈 설명: OpenAI Completion을 사용한 간단한 예제
+# - Azure OpenAI(또는 OpenAI) 환경에서 Completion API를 호출하여
+#   프롬프트에 대한 텍스트 응답을 얻고 출력합니다.
+# - 실제 실행 시에는 AOAI_ENDPOINT와 AOAI_KEY 환경 변수가 필요합니다.
+
 import os
 import openai
 
@@ -21,4 +26,3 @@ responsetext = response["choices"][0]["text"]
 print("Prompt:" + prompt_startphrase + "\nResponse:" + responsetext)
 
 print(response)
-

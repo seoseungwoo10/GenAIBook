@@ -1,3 +1,8 @@
+# 모듈 설명: Listing 7.2-7.4 - 다양한 문장 청킹 방법 비교 예제
+# - 정규식, textwrap, NLTK 세 가지 방법으로 텍스트를 청킹하고
+#   각각의 토큰 수와 임베딩 생성 시간을 비교합니다.
+# - 각 청크의 요약도 생성하여 효과를 검증
+
 #debugging
 import os
 import re
@@ -18,12 +23,14 @@ client = AzureOpenAI(
 TEXT_FILE = "./data/women_fifa_worldcup_2023.txt"
 
 # function that splits the text into chunks based on sentences
+# 정규식을 사용한 간단한 문장 분할
 def split_sentences(text):
     sentences = re.split('[.!?]', text)
     sentences = [sentence.strip() for sentence in sentences if sentence]
     return sentences
 
 # function that splits the text into chunks based on sentences
+# textwrap을 사용한 문자 단위 청킹
 def split_sentences_by_textwrap(text):
     # set the maximum chunk size to 2048 characters
     max_chunk_size = 2048
@@ -38,6 +45,7 @@ def split_sentences_by_textwrap(text):
     return chunks
 
 # function that splits the text into chunks based on sentences
+# NLTK를 사용한 문장 단위 청킹 (더 정교함)
 def split_sentences_by_nltk(text):
   chunks = []
 
@@ -68,6 +76,7 @@ def get_embedding(text):
     return response.data[0].embedding
 
 # function that generates summaries for each chunk
+# 각 청크에 대한 요약 생성
 def generate_summaries(chunks):
     # create an empty list to store the summaries
     summaries = []
@@ -89,7 +98,7 @@ def generate_summaries(chunks):
         # append the summary to the list of summaries
         summaries.append(summary)
         
-        sleep(1) # sleep for 3 seconds for rate limiting
+        sleep(1) # sleep for 1 second for rate limiting
 
     # return the list of summaries
     return summaries
@@ -107,7 +116,8 @@ def main():
     sentence_embeddings = []
     total_token_count = 0
 
-    for sentence in tqdm(sentences):    
+    # 각 문장에 대해 토큰 수 계산 및 임베딩 생성
+    for sentence in tqdm(sentences):
         # Count the number of tokens in the sentence
         total_token_count += count_tokens(sentence, "cl100k_base")
         

@@ -1,3 +1,7 @@
+# 모듈 설명: 코드 생성 및 이미지 생성 유틸 예제
+# - Stability AI(Txt->Image) 호출 예제와 간단한 OAuth2 샘플 및 타이밍 데코레이터를 포함합니다.
+# - 이 파일은 교육 목적의 예시 모음이며, 실제 API 키와 환경 설정이 필요합니다.
+
 import base64
 import os
 import requests
@@ -6,6 +10,7 @@ import re
 
 
 # write a function to calculate the time complexity of a function
+# (간단한 실행 시간 측정 데코레이터)
 def time_complexity(func):
     def wrapper(*args, **kwargs):
         start = datetime.datetime.now()
@@ -23,6 +28,7 @@ api_key = os.getenv("STABILITY_API_KEY")
 # write a python function that takes a prompt and uses stability AI 
 # to generate a image and save it to a file
 def generate_image(prompt):
+    # 안정성 API 키 확인
     if api_key is None:
         raise Exception("Missing Stability API key.")
 
@@ -65,6 +71,7 @@ def generate_image(prompt):
 
 
 # write a function to implement oauth2 authentication for a web application running on azure
+# - 예시로 Azure Identity와 KeyVault를 사용해 시크릿을 읽는 흐름을 보여줍니다.
 def oauth2_authenticate():
     # get the environment variables
     client_id = os.environ["CLIENT_ID"]
@@ -89,4 +96,3 @@ def oauth2_authenticate():
 
     # return the oauth2 response
     return oauth2_response.json()
-

@@ -1,3 +1,7 @@
+# 모듈 설명: Stability AI 엔진 목록 조회 예제
+# - Stability AI의 엔드포인트(/v1/engines/list)를 호출해 이용 가능한 엔진 목록을 가져옵니다.
+# - 환경변수 STABILITY_API_KEY를 필요로 합니다.
+
 # pip install stability-sdk
 
 import os

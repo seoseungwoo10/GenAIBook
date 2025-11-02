@@ -1,3 +1,7 @@
+# 모듈 설명: Listing 6.3 - Zero-shot 학습 예제
+# - 별도의 예제 없이 단순한 지시만으로 번역 작업 수행
+# - Few-shot과 비교하여 모델의 기본 능력에 의존
+
 import os
 from openai import AzureOpenAI
 
@@ -9,6 +13,7 @@ client = AzureOpenAI(
 
 GPT_MODEL = "gpt-35-turbo"
 
+# Zero-shot 프롬프트: 예제 없이 직접 작업 지시
 prompt_startphrase = "Translate the following to Spanish: I have a small dog called Champ."
 
 response = client.completions.create(

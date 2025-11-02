@@ -1,3 +1,7 @@
+# 모듈 설명: 코드 생성 예제 (버전 2)
+# - Stability AI를 사용한 이미지 생성 함수의 간단한 구현 예제입니다.
+# - base64 인코딩/디코딩을 통한 이미지 데이터 처리 방식 시연
+
 import base64
 import os
 import requests
@@ -24,4 +28,3 @@ def generate(prompt):
     # save the image to a file
     with open(f"images/{datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.png", "wb") as file:
         file.write(image)
-

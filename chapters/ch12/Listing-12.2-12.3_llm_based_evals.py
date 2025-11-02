@@ -1,3 +1,16 @@
+# 모듈 설명: Listing 12.2-12.3 - LLM 기반 평가(LLM-as-a-Judge)
+# - GPT-4를 사용하여 요약문의 품질을 평가합니다.
+# - G-Eval 프레임워크를 사용한 체계적 평가 (Relevance, Coherence, Consistency, Fluency)
+# - 인간 평가를 LLM이 대체하여 확장 가능하고 일관된 평가 수행
+#
+# 주요 개념:
+# - LLM-as-a-Judge: LLM을 평가자로 사용하는 메타 평가 방식
+# - G-Eval: 평가 기준과 단계를 명시한 프롬프트로 일관성 향상
+# - Relevance: 중요한 정보 포함 정도 (1-5)
+# - Coherence: 논리적 구조와 일관성 (1-5)
+# - Consistency: 원문과의 사실 일치성 (1-5)
+# - Fluency: 문법과 가독성 (1-3)
+
 import os
 from openai import AzureOpenAI
 from newspaper import Article
@@ -10,17 +23,18 @@ AZURE_ENDPOINT = os.getenv("AOAI_ENDPOINT")
 API_VERSION = "2024-02-15-preview"
 
 MODEL = "gpt-4"
-TEMPERATURE = 0
+TEMPERATURE = 0  # 평가의 일관성을 위해 0으로 설정
 TOP_P = 1
 FREQUENCY_PENALTY = 0
 PRESENCE_PENALTY = 0
-MAX_TOKENS = 5
+MAX_TOKENS = 5  # 점수만 반환하므로 적은 토큰 사용
 DEBUG = True
 
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0) Gecko/20100101 Firefox/78.0'
 URL = "https://www.gatesfoundation.org/ideas/articles/artificial-intelligence-ai-development-principles"
 
 # Evaluation prompt template based on G-Eval
+# G-Eval 기반 평가 프롬프트 템플릿
 EVALUATION_PROMPT_TEMPLATE = """
 You will be given one summary written for an article. Your task is to rate the summary on one metric.
 Please make sure you read and understand these instructions very carefully. 
@@ -50,6 +64,7 @@ Evaluation Form (scores ONLY):
 """
 
 # Metric 1: Relevance
+# 관련성: 원문의 중요 내용을 얼마나 잘 포함하는가
 
 RELEVANCY_SCORE_CRITERIA = """
 Relevance(1-5) - selection of important content from the source. \
@@ -65,6 +80,7 @@ RELEVANCY_SCORE_STEPS = """
 """
 
 # Metric 2: Coherence
+# 일관성: 문장들이 논리적으로 잘 연결되어 있는가
 
 COHERENCE_SCORE_CRITERIA = """
 Coherence(1-5) - the collective quality of all sentences. \
@@ -82,6 +98,7 @@ and if it presents them in a clear and logical order.
 """
 
 # Metric 3: Consistency
+# 일치성: 원문의 사실과 일치하는가 (환각 없음)
 
 CONSISTENCY_SCORE_CRITERIA = """
 Consistency(1-5) - the factual alignment between the summary and the summarized source. \
@@ -96,6 +113,7 @@ CONSISTENCY_SCORE_STEPS = """
 """
 
 # Metric 4: Fluency
+# 유창성: 문법, 철자, 문장 구조의 품질
 
 FLUENCY_SCORE_CRITERIA = """
 Fluency(1-3): the quality of the summary in terms of grammar, spelling, punctuation, word choice, and sentence structure.
@@ -108,6 +126,7 @@ FLUENCY_SCORE_STEPS = """
 Read the summary and evaluate its fluency based on the given criteria. Assign a fluency score from 1 to 3.
 """
 
+# Gemini로 생성한 요약문 (비교 대상)
 GEMINI_SUMMARY = """
 The Bill & Melinda Gates Foundation recognizes the potential of AI to accelerate progress in global health and development, but also acknowledges the risks of inequity and misuse. The foundation is committed to responsible and inclusive development of AI, focusing on access and equity for low-income countries. They have established a task force and advisory committee to guide their approach, adhering to core principles such as co-design, inclusivity, responsible implementation, and transparency. The foundation emphasizes the need to mitigate risks like bias and misinformation, and ensure privacy and security of data. They believe AI can be a powerful tool for positive change, but only if developed and implemented ethically and equitably.
 """
@@ -128,7 +147,9 @@ def save_article(article_text, reference_summary):
         f.write(reference_summary)
 
 # Function to get evaluation score
+# GPT-4를 사용하여 평가 점수 획득
 def get_geval_score(criteria: str, steps: str, document: str, summary: str, metric_name: str):
+    # 평가 프롬프트 구성
     prompt = EVALUATION_PROMPT_TEMPLATE.format(
         criteria=criteria,
         steps=steps,
@@ -137,6 +158,7 @@ def get_geval_score(criteria: str, steps: str, document: str, summary: str, metr
         summary=summary,
     )
     
+    # GPT-4에 평가 요청 (temperature=0으로 일관성 유지)
     response = client.chat.completions.create(
         model=MODEL,
         messages = [{"role": "user", "content": prompt}],
@@ -149,6 +171,7 @@ def get_geval_score(criteria: str, steps: str, document: str, summary: str, metr
     )
     return response.choices[0].message.content
 
+# 평가 메트릭 정의
 evaluation_metrics = {
     "Relevance": (RELEVANCY_SCORE_CRITERIA, RELEVANCY_SCORE_STEPS),
     "Coherence": (COHERENCE_SCORE_CRITERIA, COHERENCE_SCORE_STEPS),
@@ -163,20 +186,28 @@ client = AzureOpenAI(
       api_version=API_VERSION
 )
 
+# 기사 다운로드 및 파싱
 config = Config()
 config.browser_user_agent = USER_AGENT
 config.request_timeout = 10
 article_text, reference_summary = get_article(URL, config)
 
-summaries = {"NLP Summary (1)": reference_summary,
-             "Gemini Summary (2)": GEMINI_SUMMARY}
+# 평가할 요약문들
+summaries = {
+    "NLP Summary (1)": reference_summary,  # newspaper3k 기본 요약
+    "Gemini Summary (2)": GEMINI_SUMMARY   # Gemini로 생성한 요약
+}
 
+# 평가 결과 저장용 딕셔너리
 data = {"Evaluation Type": [], "Summary Type": [], "Score": []}
 
+# 각 메트릭과 요약문에 대해 평가 수행
 for eval_type, (criteria, steps) in evaluation_metrics.items():
     for summ_type, summary in summaries.items():
         data["Evaluation Type"].append(eval_type)
         data["Summary Type"].append(summ_type)
+
+        # GPT-4로 평가 점수 획득
         result = get_geval_score(criteria, steps, article_text, summary, eval_type)
         numeric_part = ''.join(filter(str.isdigit, result.strip()))
         if numeric_part:  # Check if numeric_part is not empty
@@ -187,6 +218,7 @@ if DEBUG:
     print(data)
 
 # Assuming data is your dictionary
+# 각 메트릭에서 최고 점수 표시
 max_values = {key: max(values) for key, values in data.items()}
 
 # Iterate over the dictionary
@@ -195,7 +227,7 @@ for key, values in data.items():
     for i, value in enumerate(values):
         # If the value is the maximum for that key, append a '*'
         if value == max_values[key]:
-            data[key][i] = str(value) + '*'
+            data[key][i] = str(value) + '*'  # 최고 점수에 * 표시
         else:
             data[key][i] = str(value) + ' '
             

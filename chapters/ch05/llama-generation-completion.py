@@ -1,3 +1,7 @@
+# 모듈 설명: CLIP 모델을 사용한 이미지 생성 예제
+# - OpenAI의 CLIP 모델을 사용하여 텍스트 프롬프트와 가장 유사한 이미지를 찾습니다.
+# - 미리 준비된 이미지들 중에서 프롬프트와 가장 일치하는 이미지를 선택하는 방식
+
 # write a python function that takes a prompt and uses stability AI to generate a image and save it to a file
 # the function should return the path of the saved image
 
@@ -14,6 +18,7 @@ from tqdm import tqdm
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 
+# 프롬프트와 가장 유사한 이미지를 찾는 함수
 def get_image(prompt):
     with torch.no_grad():
         text = clip.tokenize([prompt]).to(device)
@@ -33,6 +38,7 @@ def get_image(prompt):
                 print(f"{clip.tokenize([prompt])[0]} {probs[i][j]:.4f} {ids[i][j]}")
         return ids[0][0]
 
+# 이미지를 생성(선택)하고 저장하는 함수
 def generate_image(prompt):
     image_id = get_image(prompt)
     image = Image.open(f"./images/{image_id}.jpg").convert("RGB")

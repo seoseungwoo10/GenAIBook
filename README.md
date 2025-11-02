@@ -1,3 +1,5 @@
+### translation : [korean](README_KO.md)
+
 # Book - Generative AI in Action
 Welcome to the code repo associated with my book [**Generative AI in Action**](https://www.manning.com/books/generative-ai-in-action), published by Manning.
 

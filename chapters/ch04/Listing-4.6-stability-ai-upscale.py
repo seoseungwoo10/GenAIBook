@@ -1,3 +1,6 @@
+# 모듈 설명: Stability AI 업스케일 예제
+# - 기존 이미지를 업스케일(upscale)하여 더 높은 해상도의 PNG 이미지를 반환받아 저장합니다.
+
 import base64
 import os
 import requests
@@ -26,6 +29,7 @@ def valid_filename(s):
 if api_key is None:
     raise Exception("Missing Stability API key.")
 
+# 업스케일 API 호출 (multipart/form-data)
 response = requests.post(
     f"{api_host}/v1/generation/{engine_id}/image-to-image/upscale",
     headers={

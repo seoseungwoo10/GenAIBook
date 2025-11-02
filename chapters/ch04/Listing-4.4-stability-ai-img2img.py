@@ -1,3 +1,7 @@
+# 모듈 설명: Stability AI image-to-image 예제
+# - 기존 이미지를 업로드하고 텍스트 프롬프트로 변형된 이미지를 생성합니다.
+# - 응답의 base64 데이터를 디코드하여 로컬에 저장합니다.
+
 import base64
 import os
 import requests
@@ -25,6 +29,7 @@ def valid_filename(s):
 if api_key is None:
     raise Exception("Missing Stability API key.")
 
+# 이미지-투-이미지 API 호출 (multipart/form-data)
 response = requests.post(
     f"{api_host}/v1/generation/{engine_id}/image-to-image",
     headers={

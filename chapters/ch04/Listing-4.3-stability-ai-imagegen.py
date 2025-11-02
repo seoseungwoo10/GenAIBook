@@ -1,3 +1,7 @@
+# 모듈 설명: Stability AI text-to-image 예제
+# - Stability API에 텍스트 프롬프트를 전송해 이미지를 생성하고 base64로 반환되는
+#   결과를 디코드하여 로컬에 이미지 파일로 저장합니다.
+
 import base64
 import os
 import requests
@@ -8,8 +12,6 @@ engine_id = "stable-diffusion-xl-1024-v1-0"
 api_host = "https://api.stability.ai"
 api_key = os.getenv("STABILITY_API_KEY")
 
-#prompt = "A lighthouse on a cliff"
-#prompt = "Laughing panda in the clouds eating bamboo"
 prompt = "A panda surfing on a wave"
 
 if api_key is None:
@@ -27,6 +29,7 @@ def valid_filename(s):
     s = re.sub(r'[^\w_.)( -]', '', s).strip()
     return re.sub(r'[\s]+', '_', s)
 
+# 요청 전송
 response = requests.post(
     f"{api_host}/v1/generation/{engine_id}/text-to-image",
     headers={
@@ -53,6 +56,7 @@ if response.status_code != 200:
 
 data = response.json()
 
+# 반환된 base64 이미지들을 디코딩하여 파일로 저장
 for i, image in enumerate(data["artifacts"]):
     filename = f"sd_{valid_filename(prompt)}_{i}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
     image_path = os.path.join(image_dir, filename)

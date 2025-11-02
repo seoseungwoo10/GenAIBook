@@ -40,6 +40,7 @@ def get_payload():
     }
 
 # Function to call the Azure OpenAI Chat API and measure latency
+# API 호출 및 레이턴시 측정 (시작 시간과 응답 시간 차이 계산)
 def call_api_and_measure_latency():
     payload = get_payload()
     start_time = time.time()
@@ -49,6 +50,7 @@ def call_api_and_measure_latency():
 
 def main():
     # Use ThreadPoolExecutor to simulate concurrent API calls
+    # 20개의 워커 스레드로 병렬 요청 실행
     with ThreadPoolExecutor(max_workers=20) as executor:
         futures = [executor.submit(call_api_and_measure_latency) for _ in range(NUM_INTERATION)]
         latencies = []
@@ -59,6 +61,7 @@ def main():
             latencies.append(latency)
 
     # Calculate and print metrics
+    # 레이턴시 통계 계산 및 출력
     average_latency = sum(latencies) / len(latencies)
     min_latency = min(latencies) if latencies else None
     max_latency = max(latencies) if latencies else None

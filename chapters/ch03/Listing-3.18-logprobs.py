@@ -11,11 +11,13 @@ GPT_MODEL = "gpt-35-turbo"
 
 prompt_startphrase = "Suggest one word name for a white miniature poodle."
 
+# logprobs=3: 각 토큰에 대해 상위 3개의 확률 정보 반환
 response = client.completions.create(
     model=GPT_MODEL,
     prompt="Suggest a one word name for a white miniature poodle.",
-    temperature=0.8,max_tokens=100,
-    logprobs=3,
+    temperature=0.8,
+    max_tokens=100,
+    logprobs=3,  # 상위 3개 토큰의 log probability 반환
     stop=None)
 
 responsetext = response.choices[0].text

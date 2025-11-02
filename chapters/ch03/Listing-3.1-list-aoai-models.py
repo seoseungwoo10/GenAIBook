@@ -1,9 +1,8 @@
-# Make sure the following environment variables are set:
-# - AOAI_ENDPOINT
-# - AOAI_KEY
-# For exanple on Windows: setx AOAI_ENDPOINT "https://your-instance-here.openai.azure.com/"
+# 모듈 설명: Listing 3.1 - Azure OpenAI에서 사용 가능한 모델 목록 조회
+# - AzureOpenAI 클라이언트를 사용해 배포된 모델의 ID, 상태, 기능을 조회하고
+#   결과를 JSON 파일로 저장합니다.
+# - 환경 변수 AOAI_ENDPOINT와 AOAI_KEY 필요
 
-# Listing: 3.1 - List the models available in Azure OpenAI
 import os
 from openai import AzureOpenAI
 import json
@@ -24,6 +23,7 @@ with open('azure-oai-models.json', 'w') as file:
     json.dump(models_dict, file)
     
 # Print out the names of all the available models, and their capabilities
+# 각 모델의 ID, 현재 상태, 기능 출력
 for model in models:
     print("ID:", model.id)
     print("Current status:", model.lifecycle_status)

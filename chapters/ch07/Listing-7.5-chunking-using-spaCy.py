@@ -1,3 +1,8 @@
+# 모듈 설명: Listing 7.5 - spaCy를 사용한 고급 청킹 예제
+# - spaCy의 문장 분할 기능과 tiktoken의 정확한 토큰 카운팅을 결합합니다.
+# - 슬라이딩 윈도우 방식으로 청크 간 오버랩을 설정할 수 있습니다.
+# - 토큰 제한을 초과하지 않으면서 의미 단위를 보존
+
 # Use spaCy to tokenize the text into sentences.
 # Use tiktoken to count the tokens accurately.
 # Slide through the sentences using a window (defined by the token limit), optionally allowing overlaps.
@@ -37,7 +42,8 @@ def get_embedding(text):
     return response.data[0].embedding
 
 # function that splits the text into chunks based on sentences
-def chunking_with_spacy(text, max_tokens, 
+# spaCy + 슬라이딩 윈도우를 사용한 청킹
+def chunking_with_spacy(text, max_tokens,
                         overlap=0, 
                         model="en_core_web_sm"):
     # Load spaCy model
@@ -53,6 +59,7 @@ def chunking_with_spacy(text, max_tokens,
     chunks = []
     start_idx = 0
     
+    # 슬라이딩 윈도우 방식으로 청크 생성
     while start_idx < len(sentences):
         current_chunk = []
         current_token_count = 0
@@ -65,6 +72,7 @@ def chunking_with_spacy(text, max_tokens,
         chunks.append(" ".join(current_chunk))
         
         # Sliding window adjustment
+        # overlap: 이전 청크와 겹치는 문장 수
         if overlap >= len(current_chunk):
             start_idx += 1
         else:
@@ -80,7 +88,7 @@ if __name__ == "__main__":
         "Choose your strategy based on your requirements.")
 
     max_tokens = 25
-    overlap_sentences = 2
+    overlap_sentences = 2  # 청크 간 2개 문장 오버랩
     chunks = chunking_with_spacy(text, max_tokens, overlap=overlap_sentences)
 
     for i, chunk in enumerate(chunks):

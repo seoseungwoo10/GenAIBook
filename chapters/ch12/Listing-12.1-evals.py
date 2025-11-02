@@ -1,5 +1,4 @@
 # conda install -c conda-forge newspaper3k evaluate
-# conda install -c conda-forge evaluate
 # conda install -c huggingface -c conda-forge datasets
 # pip install bert_score 
 
@@ -29,6 +28,7 @@ USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:78.0) Gecko/20100
 URL = "https://www.gatesfoundation.org/ideas/articles/artificial-intelligence-ai-development-principles"
 
 # Get article from URL
+# 웹 URL에서 기사를 다운로드하고 텍스트 및 요약 추출
 def get_article(URL, config):
     article = Article(URL, config=config)
     article.download(recursion_counter=2)
@@ -37,6 +37,7 @@ def get_article(URL, config):
     return article.text, article.summary
 
 # Save article and summary to disk
+# 기사와 요약을 로컬 파일로 저장
 def save_article(article_text, reference_summary):
     directory = './data'
     if not os.path.exists(directory):
@@ -49,6 +50,7 @@ def save_article(article_text, reference_summary):
         f.write(reference_summary)
 
 # Generate summary using OpenAI API
+# OpenAI Chat API를 사용하여 기사 요약 생성
 def generate_summary(client, article_text):
     prompt = f"Summarize the following article:\n\n{article_text}"
     conversation = [{"role": "system", "content": "You are a helpful assistant."}]
@@ -67,6 +69,7 @@ def generate_summary(client, article_text):
     return response.choices[0].message.content.strip()
   
 # Calculate BLEU, ROUGE, and BERT scores
+# 생성된 요약과 참조 요약을 비교하여 BLEU, ROUGE, BERT 스코어 계산
 def calculate_scores(generated_summary, reference_summary):
   try:
     if DEBUG:
@@ -75,12 +78,15 @@ def calculate_scores(generated_summary, reference_summary):
         print("\nReference Summary:")
         print(reference_summary)
           
+    # BLEU 스코어 계산 (n-gram 일치도 측정)
     metric = evaluate.load("bleu", trust_remote_code=True)
     bleu_score = metric.compute(predictions=[generated_summary], references=[reference_summary])
 
+    # ROUGE 스코어 계산 (요약 품질 측정)
     metric = evaluate.load("rouge", trust_remote_code=True)
     rouge_score = metric.compute(predictions=[generated_summary], references=[reference_summary])
     
+    # BERT 스코어 계산 (의미적 유사도 측정)
     scorer = BERTScorer(lang="en")
     p1, r1, f1 = scorer.score([generated_summary], [reference_summary])
     bert_score = f"Precision: {p1} Recall: {r1} F1 Score: {f1.tolist()[0]}"

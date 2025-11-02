@@ -1,10 +1,13 @@
+# 모듈 설명: Listing 10.1-10.3 - Semantic Kernel과 ChromaDB를 사용한 RAG 예제
+# - PDF 파일을 로드하고 각 페이지를 ChromaDB에 임베딩하여 저장합니다.
+# - 사용자 질문에 대해 벡터 검색으로 관련 문서를 찾고 LLM에 컨텍스트로 제공합니다.
+# - Azure OpenAI의 Chat Completion과 Text Embedding을 사용
+
 # needs these packages installed
 # conda install chromadb=0.4.15
 # pip install chromadb==0.4.15
 # pip install semantic-kernel==1.2.0
 # pip install PyPDF2==3.0.1
-
-# Older version: semantic-kernel=0.5.1.dev0
 
 import os
 import warnings
@@ -31,13 +34,13 @@ PERSIST_DIR = os.getenv("PERSIST_DIR")
 VECTOR_DB = os.getenv("VECTOR_DB")
 
 DOG_BOOKS = "./data/dog_books"
-#DOG_BOOKS = "./data/dog_books_test" ##Used to test with only one file
 DEBUG = True
 VECTOR_DB = "dog_books"
 PERSIST_DIR = "./storage"
 ALWAYS_CREATE_VECTOR_DB = False
 
 # Load PDFs and extract text
+# PDF 파일들을 로드하고 각 페이지의 텍스트를 추출
 def load_pdfs():
     docs = []
     total_docs = 0
@@ -61,6 +64,7 @@ def load_pdfs():
     return docs
 
 # Populate the DB with the PDFs
+# 추출한 텍스트를 벡터 DB에 저장 (임베딩 생성 및 저장)
 async def populate_db(memory: SemanticTextMemory, docs) -> None:
     for i, doc in enumerate(tqdm_asyncio.tqdm(docs, desc="Populating DB")):
         if doc:  # Check if doc is not empty
@@ -77,6 +81,7 @@ def check_prompt(user_input):
     return user_input
 
 # Load the vector DB
+# 벡터 DB 로드 또는 생성 (이미 있으면 재사용, 없으면 PDF에서 생성)
 async def load_vector_db(memory: SemanticTextMemory, vector_db_name: str) -> None:
     if not ALWAYS_CREATE_VECTOR_DB:
         collections = await memory.get_collections()
@@ -88,12 +93,11 @@ async def load_vector_db(memory: SemanticTextMemory, vector_db_name: str) -> Non
     print(f" Vector DB {vector_db_name} does not exist in the collections.")
     print("Reading the pdfs...")
 
-    # pdf_docs, pdf_metadata = load_pdfs()
     pdf_docs = load_pdfs()
     print("Total PDFs loaded: ", len(pdf_docs))
     print("Creating embeddings and vector db of the PDFs...")
 
-    # NOE: this may take some time as we call OpenAI embedding API for each row
+    # NOTE: this may take some time as we call OpenAI embedding API for each row
     await populate_db(memory, pdf_docs)
 
 # Main function
@@ -110,6 +114,7 @@ async def main():
         print("DOG_BOOKS: ", DOG_BOOKS)
         
     # Setup Semantic Kernel
+    # Semantic Kernel 초기화 (Chat Completion 및 Text Embedding 서비스 추가)
     kernel = sk.Kernel()
     kernel.add_service(
         AzureChatCompletion(
@@ -133,7 +138,7 @@ async def main():
         print("SK kernel loaded...")
 
     # Specify the type of memory to attach to SK. Here we will use Chroma as it is easy to run it locally
-    # You can specify location of Chroma DB files. The DB will be stored in "catalog" directory under current dir
+    # ChromaDB를 벡터 저장소로 사용 (로컬에서 실행 가능)
     store = ChromaMemoryStore(persist_directory=PERSIST_DIR)
     memory = SemanticTextMemory(
         storage=store, embeddings_generator=kernel.get_service("text_embedding")
@@ -149,8 +154,7 @@ async def main():
             input('Ask a question against the PDF (type "quit" to exit):')
         )
         if not prompt:
-            print("Please enter a valid question.")
-            continue
+            continue  # 사용자 입력이 비어있으면 다시 입력 받음
 
         # Now query the memory for most relevant match using search_async specifying 
         # relevance score and "limit" of number of closest documents

@@ -1,3 +1,7 @@
+# 모듈 설명: Stability AI 마스킹(inpainting) 예제
+# - 원본 이미지와 마스크 이미지를 업로드하고, 마스크된 영역만 변형하여 이미지를 생성합니다.
+# - 응답의 base64 이미지를 디코딩하여 저장합니다.
+
 import base64
 import os
 import requests
@@ -27,6 +31,7 @@ def valid_filename(s):
 if api_key is None:
     raise Exception("Missing Stability API key.")
 
+# 마스킹을 포함한 이미지-투-이미지 API 호출
 response = requests.post(
     f"{api_host}/v1/generation/{engine_id}/image-to-image/masking",
     headers={
